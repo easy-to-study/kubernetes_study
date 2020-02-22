@@ -50,6 +50,8 @@ spec:
           mountPath: /mnt/data/
         - name: secrets-volume
           mountPath: /var/run/secrets
+        - name: blackbox-exporter-volume
+          mountPath: /mnt/blackbox-exporter
       volumes:
       - name: config-volume
         configMap:
@@ -59,6 +61,9 @@ spec:
       - name: secrets-volume
         hostPath:
           path: /var/run/secrets
+      - name: blackbox-exporter-volume
+        configMap:
+          name: icmp-target
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -81,3 +86,17 @@ data:
       static_configs:
       - targets:
         - localhost:9090
+    - job_name: 'blackbox-exporter'
+      metrics_path: /metrics
+      params:
+        module: [icmp]
+      file_sd_configs:
+        - files:
+          - /mnt/blackbox-exporter/icmp-target.yml
+      relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          replacement: 'blackbox-exporter-clusterip.monitoring.svc.cluster.local:9115'
