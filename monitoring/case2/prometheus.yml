@@ -15,10 +15,10 @@ spec:
   selector:
     app: prometheus
   ports:
-  - name: prometheus
-    port: 9090
-    targetPort: 9090
-    nodePort: 30090
+    - name: prometheus
+      port: 9090
+      targetPort: 9090
+      nodePort: 30090
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,33 +37,33 @@ spec:
         app: prometheus
     spec:
       containers:
-      - name: prometheus
-        image: prom/prometheus:v2.2.1
-        args:
-        - '--config.file=/mnt/etc/prometheus.yml'
-        ports:
-        - containerPort: 9090
-        volumeMounts:
-        - name: config-volume
-          mountPath: /mnt/etc/
-        - name: data-volume
-          mountPath: /mnt/data/
-        - name: secrets-volume
-          mountPath: /var/run/secrets
-        - name: blackbox-exporter-volume
-          mountPath: /mnt/blackbox-exporter
+        - name: prometheus
+          image: prom/prometheus:v2.2.1
+          args:
+            - "--config.file=/mnt/etc/prometheus.yml"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: config-volume
+              mountPath: /mnt/etc/
+            - name: data-volume
+              mountPath: /mnt/data/
+            - name: secrets-volume
+              mountPath: /var/run/secrets
+            - name: blackbox-exporter-volume
+              mountPath: /mnt/blackbox-exporter
       volumes:
-      - name: config-volume
-        configMap:
-          name: prometheus-config
-      - name: data-volume
-        emptyDir: {}
-      - name: secrets-volume
-        hostPath:
-          path: /var/run/secrets
-      - name: blackbox-exporter-volume
-        configMap:
-          name: icmp-target
+        - name: config-volume
+          configMap:
+            name: prometheus-config
+        - name: data-volume
+          emptyDir: {}
+        - name: secrets-volume
+          hostPath:
+            path: /var/run/secrets
+        - name: blackbox-exporter-volume
+          configMap:
+            name: icmp-target
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -100,28 +100,38 @@ data:
           target_label: instance
         - target_label: __address__
           replacement: 'blackbox-exporter-clusterip.monitoring.svc.cluster.local:9115'
+
     - job_name: 'kubernetes-pods'
       metrics_path: /metrics
       kubernetes_sd_configs:
       - role: pod
       relabel_configs:
-        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-          action: keep
-          regex: true
-        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-          action: replace
-          target_label: __metrics_path__
-          regex: (.+)
-        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-          action: replace
-          regex: (.+):(?:\d+);(\d+)
-          replacement: ${1}:${2}
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: (.+):(?:\d+);(\d+)
+        replacement: ${1}:${2}
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+        
+    - job_name: "kube-setting"
+      kubernetes_sd_configs:
+      - role: node  
+      relabel_configs:
+        - source_labels: [__address__]
+          regex: '(.*):10250'
+          replacement: '${1}:30080'
           target_label: __address__
-        - action: labelmap
-          regex: __meta_kubernetes_pod_label_(.+)
-        - source_labels: [__meta_kubernetes_namespace]
-          action: replace
-          target_label: kubernetes_namespace
-        - source_labels: [__meta_kubernetes_pod_name]
-          action: replace
-          target_label: kubernetes_pod_name
