@@ -405,6 +405,10 @@ metadata:
     component: core
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+      component: core
   template:
     metadata:
       labels:
@@ -2380,7 +2384,7 @@ spec:
         configMap:
           name: grafana-import-dashboards
 ---
-# apiVersion: apps/v1
+# apiVersion: extensions/v1beta1
 # kind: Ingress
 # metadata:
 #   name: grafana
@@ -2562,6 +2566,10 @@ metadata:
     component: core
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      component: core
   template:
     metadata:
       name: prometheus-main
@@ -2608,6 +2616,9 @@ metadata:
   namespace: monitoring
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: kube-state-metrics
   template:
     metadata:
       labels:
@@ -2648,7 +2659,7 @@ spec:
 #   - replicationcontrollers
 #   - limitranges
 #   verbs: ["list", "watch"]
-# - apiGroups: ["extensions"]
+# - apiGroups: ["extensions", "apps"]
 #   resources:
 #   - daemonsets
 #   - deployments
@@ -2677,7 +2688,6 @@ spec:
     protocol: TCP
   selector:
     app: kube-state-metrics
-
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -2692,6 +2702,9 @@ metadata:
       These are scheduled on every node in the Kubernetes cluster.
       To choose directories from the node to check, just mount them on the `read-du` container below `/mnt`.
 spec:
+  selector:
+    matchLabels:
+      app: node-directory-size-metrics
   template:
     metadata:
       labels:
@@ -2760,6 +2773,10 @@ metadata:
     app: prometheus
     component: node-exporter
 spec:
+  selector:
+    matchLabels:
+      app: prometheus
+      component: node-exporter
   template:
     metadata:
       name: prometheus-node-exporter
