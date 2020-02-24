@@ -2,7 +2,7 @@
 {{- $fullName := include "prometheus.grafana.fullname" . -}}
 {{- $servicePort := .Values.grafana.service.port -}}
 {{- $ingressPath := .Values.grafana.ingress.path -}}
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
