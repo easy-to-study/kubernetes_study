@@ -42,10 +42,13 @@ data:
       evaluation_interval: 15s
     scrape_configs:
       - job_name: "kube-setting"
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: node
         relabel_configs:
           - source_labels: [__address__]
             regex: '(.*):10250'
-            replacement: '${1}:30080'
+            replacement: '${1}:32080'
             target_label: __address__
