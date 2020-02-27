@@ -2,36 +2,43 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: prometheus-ne
+  name: prometheus-node-export
 spec:
   selector:
     matchLabels:
-      name: prometheus-ne
+      app: prometheus
   template:
     metadata:
+      name: prometheus-node-exporter
       labels:
-        name: prometheus-ne
+        app: prometheus
     spec:
       containers:
         - image: prom/node-exporter:v0.14.0
           name: prometheus-node-exporter
           ports:
-            - containerPort: 9100
+          - name: prom-node-exp
+            containerPort: 9100
+            hostPort: 9100
+      hostNetwork: true
+      hostPID: true
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus-np
+  name: prometheus-ne
+  labels:
+    app: prometheus-ne
   annotations:
     prometheus.io/scrape: 'true'
+
 spec:
-  type: NodePort
+  clusterIP: None
   ports:
     - name: prometheus-ne
       port: 9100
-      targetPort: 9100
       protocol: TCP
-      nodePort: 32080
   selector:
-    name: prometheus-ne
+    app: prometheus
+  type: ClusterIP
