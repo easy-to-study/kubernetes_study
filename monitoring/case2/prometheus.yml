@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: monitoring
+  namespace: case2
   labels:
     name: monitoring
 ---
@@ -9,7 +10,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
-  namespace: monitoring
+  namespace: case2
 spec:
   type: NodePort
   selector:
@@ -24,7 +25,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
-  namespace: monitoring
+  namespace: case2
 spec:
   replicas: 1
   selector:
@@ -69,7 +70,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
-  namespace: monitoring
+  namespace: case2
 data:
   prometheus.yml: |
     global:
