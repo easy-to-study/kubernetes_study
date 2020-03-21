@@ -60,4 +60,4 @@ metadata:
 data:
   icmp-target.yml: |
     - targets:
-        - '192.168.99.100'
+        - '192.168.64.3'
